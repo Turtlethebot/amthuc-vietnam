@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vietnam Culinary Map - 18 Đặc Sản</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-red: #a30000;
+            --bright-red: #d30000;
+            --star-gold: #ffcc00;
+            --bg-yellow: #f6b91a; /* Màu vàng nền của các món ăn */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fff; }
+
+        /* HEADER */
+        header {
+            background-color: var(--dark-red);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 14px;
+            position: fixed;
+            top: 0; width: 100%; z-index: 1000;
+        }
+        .star { color: var(--star-gold); margin-right: 10px; font-size: 18px; }
+
+        /* HERO BANNER - Đã sửa lại ảnh bàn tiệc chuẩn */
+        .hero {
+            margin-top: 40px;
+            height: 450px;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                        url('https://cdn.tgdd.vn/2022/05/CookRecipe/CookTipsNote/cach-sap-xep-ban-an-kieu-viet-nam-dep-mat-tinh-te-dung-chuan-tipsnote-800x450.jpg') center/cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        .hero h1 { font-size: 48px; font-weight: 700; text-shadow: 2px 2px 8px rgba(0,0,0,0.5); }
+        .hero p { font-size: 16px; margin-top: 10px; opacity: 0.9; }
+
+        /* GRID MÓN ĂN */
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 40px 15px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        /* CARD MÓN ĂN - THÊM NỀN VÀNG GIỐNG ẢNH MẪU */
+        .food-card {
+            background-color: var(--bg-yellow); /* Đã thêm nền vàng ở đây */
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+            padding: 10px; /* Tạo khoảng trống để hiện nền vàng xung quanh ảnh */
+        }
+        .food-card:hover { transform: translateY(-5px); }
+        
+        .img-box { 
+            width: 100%; 
+            height: 180px; 
+            overflow: hidden; 
+            border-radius: 8px; /* Bo góc nhẹ cho ảnh bên trong */
+        }
+        .img-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        .food-name {
+            background-color: var(--bright-red);
+            color: white;
+            text-align: center;
+            padding: 12px 5px;
+            font-weight: 700;
+            font-size: 15px;
+            margin: 10px -10px -10px -10px; /* Kéo dài thanh đỏ ra sát mép dưới */
+        }
+
+        /* POPUP */
+        .popup {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .popup-content {
+            background: white; max-width: 550px; width: 90%;
+            border-radius: 20px; position: relative; overflow: hidden;
+            animation: zoom 0.3s ease;
+        }
+        @keyframes zoom { from { transform: scale(0.8); } to { transform: scale(1); } }
+        .close-btn { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 30px; color: white; z-index: 10; }
+        .popup-img { width: 100%; height: 250px; object-fit: cover; }
+        .popup-info { padding: 25px; text-align: center; }
+        .popup-desc { text-align: justify; color: #444; margin: 15px 0; line-height: 1.7; }
+        .btn-map {
+            display: inline-block; padding: 12px 25px;
+            background: var(--bright-red); color: white; text-decoration: none;
+            border-radius: 8px; font-weight: 700; margin-top: 10px;
+        }
+
+        @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <span class="star">★</span> VIETNAM CULINARY MAP
+</header>
+
+<div class="hero">
+    <h1>Tinh Hoa Ẩm Thực Việt</h1>
+   
+</div>
+
+<div class="container">
+    <div class="grid" id="foodGrid"></div>
+</div>
+
+<div class="popup" id="popup">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup()">×</span>
+        <div id="popupBody"></div>
+    </div>
+</div>
+
+<script>
+const foods = [
+    { name: "Phở bò", img: "https://cdn-i2.congthuong.vn/stores/news_dataimages/2024/122024/31/10/pho-bo20241231103214.jpg?rt=20241231103215", desc: "Phở bò Hà Nội quyến rũ bởi nước dùng trong, thanh thanh nhưng lại mang vị ngọt đậm đà từ xương ống ninh kỹ. Những lát thịt bò tươi mềm hòa quyện cùng sợi bánh phở trắng mịn và hương thơm nồng nàn của gừng, quế, hồi nướng." },
+    { name: "Bún chả", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-LgQpEfBI_yGYavwVDmAXO0rApqpfpkaIQw&s", desc: "Món ăn đặc trưng với những miếng chả nướng xèo xèo trên than hồng, thơm phức mùi sả hành. Nước chấm đu đủ chua ngọt thanh tao ăn kèm bún tươi và rau sống tạo nên hương vị Hà thành khó quên." },
+    { name: "Thịt trâu gác bếp", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyBSXVUbDLsGwZiw1Kd-pWG3Om-LWFBrJ6dQ&s", desc: "Sản vật quý của vùng cao, thịt trâu được tẩm ướp hạt mắc khén, hạt dổi rồi hun khói củi ròng rã nhiều tháng. Thịt bên ngoài màu nâu sẫm nhưng bên trong đỏ hồng, vị ngọt đậm và cay tê đầu lưỡi." },
+    { name: "Thắng cố", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8X4PimTKci9JF30eTxp0rASg9E2pCrSnS9g&s", desc: "Món thắng cố ngựa truyền thống của người H'Mông mang hương vị thảo mộc núi rừng đặc trưng. Nước dùng đậm đà từ nội tạng và xương, thường được thưởng thức bên chén rượu ngô nồng ấm giữa phiên chợ vùng cao." },
+    { name: "Khâu nhục", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_B7DJMg_iMxUQsCcDDx_eKiIgAzn5avlluw&s", desc: "Khâu nhục là món thịt ba chỉ được chế biến cực kỳ công phu qua các bước quay, hấp cách thủy cùng khoai môn và lá tàu soi. Thịt mềm rục như tan trong miệng, béo ngậy nhưng không ngấy." },
+    { name: "Bánh chưng đen", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbFybYgF_4-dx7ai8CikfUL3r9H_6DOhnQ4A&s", desc: "Món bánh độc đáo có màu đen bóng bẩy từ tro của rơm nếp hoặc vỏ cây đại. Bánh có vị dẻo mịn của nếp nương, thơm mùi thảo mộc và đậm đà thịt mỡ, đỗ xanh." },
+    { name: "Bún bò Huế", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiV9oQUXTJRm-ID4Fgt1jVZVM96aEywR1Pdg&s", desc: "Hồn cốt của ẩm thực cố đô với nước dùng nồng nàn mùi mắm ruốc, sả và ớt màu. Tô bún đầy đặn với giò heo, huyết, thịt bò bắp và sợi bún to đặc trưng, thể hiện sự tinh tế và cầu kỳ của người Huế." },
+    { name: "Mì Quảng", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUsUBP49iBumDUG8mgLSqZht5JeYwQfySl9g&s", desc: "Món ăn mộc mạc với sợi mì vàng óng, nước dùng sâm sấp đậm đà. Ăn kèm với tôm, thịt, trứng cút, bánh đa giòn tan và rau sống trà quế thơm lừng, tạo nên bản giao hưởng hương vị đất Quảng." },
+    { name: "Cao lầu", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwaUqAHhwuR-2EJEh1wM7PpwTBG7B4gL0fxA&s", desc: "Món ăn độc bản chỉ có tại Hội An, sợi mì được làm từ nước giếng Bá Lễ và tro củi Cù Lao Chàm. Sợi mì dai giòn ăn cùng thịt xá xíu, tóp mỡ và nước sốt đặc biệt mang dư vị cổ kính." },
+    { name: "Gà nướng Bản Đôn", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4SRlOwrAMhSEbwGg_nXNCRgzzpQz1iGn3ng&s", desc: "Gà thả vườn được nướng trên than củi, tẩm ướp muối sả và mật ong rừng. Da gà vàng ruộm, giòn tan, thịt chắc ngọt, mang đậm hương vị hoang dã của đại ngàn Tây Nguyên." },
+    { name: "Cơm lam", img: "https://file.hstatic.net/200000927023/file/nau_com_lam_bang_ong_tre_truyen_thong_cadbf2a864094a09bd1ccbdaa0419be5_grande.png", desc: "Gạo nếp nương thơm dẻo được nướng trong ống tre rừng. Khi bóc vỏ tre, ống cơm lam trắng ngần với lớp màng mỏng bao quanh, thơm mùi tre nứa, chấm cùng muối vừng rất giản dị mà tinh tế." },
+    { name: "Gỏi lá", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRY6O503yh1pE98TmQUi0ro7iMELI4WQ7h33A&s", desc: "Một 'mâm rừng' đúng nghĩa với hơn 40 loại lá khác nhau. Cách ăn cầu kỳ, gói ghém thịt ba chỉ, tôm, da heo vào các lớp lá, ăn kèm nước cốt độc đáo tạo nên vị chát, ngọt, chua, cay bùng nổ." },
+    { name: "Cơm tấm", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYn4DxXBYgCK2gw3udITmaTchjtRcVil1_og&s", desc: "Món ăn 'quốc hồn' của Sài Gòn với hạt cơm tấm khô đặc trưng. Sự kết hợp hoàn hảo giữa sườn nướng cháy cạnh, bì giòn, chả trứng béo ngậy và nước mắm kẹo chua ngọt kích thích vị giác." },
+    { name: "Hủ tiếu Nam Vang", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFVV1POzVrY4BDwScGgZvJAnD6UA9DfK2M9Q&s", desc: "Hủ tiếu có nước dùng ngọt thanh từ xương ống và tôm khô. Topping phong phú với tôm, gan, thịt băm, trứng cút cùng tỏi phi thơm nức mũi, là món ăn sáng yêu thích của người dân Nam Bộ." },
+    { name: "Lẩu mắm", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrZ_TDUcouWJs2C5bYKqJ-43Sr1zT25j1x7w&s", desc: "Hương vị nồng nàn từ mắm cá linh, cá sặc sông nước. Nồi lẩu hội tụ đủ các loại cá tươi, tôm, mực cùng hơn 20 loại rau đồng nội như bông súng, điên điển, rau đắng... cực kỳ hấp dẫn." },
+    { name: "Bánh xèo miền Tây", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuSquASeahdJodJDPITs8LxvOATtEjlPcpeg&s", desc: "Chiếc bánh xèo to tròn, vàng rực, giòn tan trong chảo lớn. Nhân bánh gồm tôm, thịt, giá đỗ quyện cùng nước cốt dừa béo ngậy, cuộn trong lá cải bẹ xanh chấm nước mắm tỏi ớt." },
+    { name: "Cá kho tộ", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1jtIhsqagWS8eDxQyZ7NA_jU7DXfkMlbnHQ&s", desc: "Cá lóc hoặc cá hú được kho trong tộ đất với nước hàng óng ả, hạt tiêu cay nồng và vài lát mỡ hành béo ngậy. Vị ngọt mặn hài hòa, đậm đà rất 'bắt' cơm trong những bữa cơm gia đình." },
+    { name: "Lẩu lá nhíp", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1mYFAvOXxNdTpP16fJoYsvyxIA0BXLA2zfA&s", desc: "Món lẩu đặc sản của người S'Tiêng với nhân vật chính là lá nhíp rừng ngọt bùi. Nước lẩu nấu cùng cá suối hoặc thịt gà rừng, mang vị thanh mát, giải nhiệt và rất giàu dinh dưỡng." }
+];
+
+const grid = document.getElementById('foodGrid');
+const popup = document.getElementById('popup');
+
+foods.forEach(food => {
+    const card = document.createElement('div');
+    card.className = 'food-card';
+    card.innerHTML = `
+        <div class="img-box"><img src="${food.img}" alt="${food.name}"></div>
+        <div class="food-name">${food.name}</div>
+    `;
+    card.onclick = () => openPopup(food);
+    grid.appendChild(card);
+});
+
+function openPopup(food) {
+    const mapUrl = `https://www.google.com/maps/search/${encodeURIComponent(food.name + ' gần đây')}`;
+    document.getElementById('popupBody').innerHTML = `
+        <img src="${food.img}" class="popup-img">
+        <div class="popup-info">
+            <h2 style="color:var(--dark-red)">${food.name}</h2>
+            <p class="popup-desc">${food.desc}</p>
+            <a href="${mapUrl}" target="_blank" class="btn-map">🚩 Xem địa điểm ăn ngay</a>
+        </div>
+    `;
+    popup.style.display = 'flex';
+}
+
+function closePopup() { popup.style.display = 'none'; }
+window.onclick = (e) => { if(e.target == popup) closePopup(); }
+</script>
+</body>
+</html>
